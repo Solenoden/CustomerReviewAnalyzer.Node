@@ -1,0 +1,28 @@
+{
+	"info": {
+		"_postman_id": "15f68721-8fc3-46f6-bc8c-29cac8c8c9bb",
+		"name": "Customer Review Analyzer API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "19767529"
+	},
+	"item": [
+		{
+			"name": "CommentsReportGet",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/report/comments",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"report",
+						"comments"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
