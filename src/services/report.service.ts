@@ -4,6 +4,8 @@ import { ReportDataAnalyzer } from '../interfaces/report-data-analyzer.interface
 import { ShortCommentAnalyzer } from '../classes/short-comment-analyzer.class'
 import { MoverMentionsCommentAnalyzer } from '../classes/mover-mentions-comment-analyzer.class'
 import { ShakerMentionsCommentAnalyzer } from '../classes/shaker-mentions-comment-analyzer.class'
+import { QuestionCommentAnalyzer } from '../classes/question-comment-analyzer.class'
+import { SpamCommentAnalyzer } from '../classes/spam-comment-analyzer.class'
 
 export class ReportService {
     private readonly documentsPath = './docs'
@@ -14,7 +16,9 @@ export class ReportService {
             const commentAnalyzers: ReportDataAnalyzer[] = [
                 new ShortCommentAnalyzer(),
                 new MoverMentionsCommentAnalyzer(),
-                new ShakerMentionsCommentAnalyzer()
+                new ShakerMentionsCommentAnalyzer(),
+                new QuestionCommentAnalyzer(),
+                new SpamCommentAnalyzer()
             ]
 
             fileSystem.promises.readdir(this.documentsPath).then(allFiles => {
