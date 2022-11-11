@@ -37,4 +37,4 @@ jobs:
             node_version=12.20.1
             environment=production
           push: true
-          tags: gavindebruyn/customer-review-analyzer.node:latest
+          tags: gavindebruyn/customer-review-analyzer-node:latest
