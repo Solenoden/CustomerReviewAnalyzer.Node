@@ -1,19 +1,23 @@
 import * as fileSystem from 'fs'
 import { ReportMetric } from '../interfaces/report-metric.interface'
 import { ReportDataAnalyzer } from '../interfaces/report-data-analyzer.interface'
-import { ShortCommentAnalyzer } from '../classes/short-comment-analyzer'
+import { ShortCommentAnalyzer } from '../classes/short-comment-analyzer.class'
+import { MoverMentionsCommentAnalyzer } from '../classes/mover-mentions-comment-analyzer.class'
+import { ShakerMentionsCommentAnalyzer } from '../classes/shaker-mentions-comment-analyzer.class'
 
 export class ReportService {
     private readonly documentsPath = './docs'
 
     public async compileCommentsReport(): Promise<ReportMetric[]> {
         return new Promise((resolve, reject) => {
-            fileSystem.promises.readdir(this.documentsPath).then(allFiles => {
-                const commentFileRegex = new RegExp(/comments-([0-9]{4}-[0-9]{2}-[0-9]{2})\.txt/)
-                const commentAnalyzers: ReportDataAnalyzer[] = [
-                    new ShortCommentAnalyzer()
-                ]
+            const commentFileRegex = new RegExp(/comments-([0-9]{4}-[0-9]{2}-[0-9]{2})\.txt/)
+            const commentAnalyzers: ReportDataAnalyzer[] = [
+                new ShortCommentAnalyzer(),
+                new MoverMentionsCommentAnalyzer(),
+                new ShakerMentionsCommentAnalyzer()
+            ]
 
+            fileSystem.promises.readdir(this.documentsPath).then(allFiles => {
                 const commentFiles: { name: string, date: Date }[] = []
                 allFiles.forEach(file => {
                     const matchInfo = commentFileRegex.exec(file)
