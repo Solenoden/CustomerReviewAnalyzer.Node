@@ -1,3 +1,3 @@
 export enum WorkerFile {
-    Report = 'report.worker.ts'
+    Report = 'report.worker.js'
 }

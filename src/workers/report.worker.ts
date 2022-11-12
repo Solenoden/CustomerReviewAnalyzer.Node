@@ -2,7 +2,6 @@ import { isMainThread, parentPort, workerData } from 'worker_threads'
 import * as fileSystem from 'fs'
 import { WorkerData } from '../interfaces/worker-data.interface'
 import { WorkerOperation } from '../enums/worker-operation.enum'
-import { ReportDataAnalyzer } from '../interfaces/report-data-analyzer.interface'
 import { ReportService } from '../services/report.service'
 
 /* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment */

@@ -4,7 +4,7 @@ import { WorkerOperation } from '../enums/worker-operation.enum'
 import { WorkerData } from '../interfaces/worker-data.interface'
 
 export class WorkerService {
-    private readonly workerRouterPath = './src/workers/worker-router.js'
+    private readonly workersPath = './dist/workers'
 
     public createWorkerThread(
         workerFile: WorkerFile,
@@ -18,6 +18,6 @@ export class WorkerService {
         }
 
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        return new Worker(this.workerRouterPath, { workerData: data })
+        return new Worker(this.workersPath + '/' + workerFile, { workerData: data })
     }
 }
