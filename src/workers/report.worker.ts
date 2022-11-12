@@ -17,14 +17,10 @@ if (!isMainThread && workerData && workerData.operation) {
 }
 
 async function processCommentsFile() {
-    const payload = workerData.payload as {
-        commentAnalyzers: { [key: string]: { new(): ReportDataAnalyzer<any> } },
-        filePath: string
-    }
-
+    const payload = workerData.payload as { filePath: string }
     const commentAnalyzers = Object.values(ReportService.commentAnalyzers).map(x => new x())
 
-    if (payload.commentAnalyzers && payload.filePath) {
+    if (payload.filePath) {
         const fileContents = await fileSystem.promises.readFile(payload.filePath)
         const lines = fileContents.toString().split('\r\n')
         lines.forEach(line => {
