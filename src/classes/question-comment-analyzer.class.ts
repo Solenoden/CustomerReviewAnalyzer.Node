@@ -1,16 +1,21 @@
 import { ReportDataAnalyzer } from '../interfaces/report-data-analyzer.interface'
 import { ReportMetric } from '../interfaces/report-metric.interface'
 
-export class QuestionCommentAnalyzer implements ReportDataAnalyzer {
-    reportMetric: ReportMetric = { name: 'QUESTIONS', value: 0 }
+export class QuestionCommentAnalyzer implements ReportDataAnalyzer<number> {
+    identifier = 'QuestionCommentAnalyzer'
+    reportMetric: ReportMetric<number> = { name: 'QUESTIONS', value: 0 }
 
-    analyze(commentText: string): void {
+    public analyze(commentText: string): void {
         if (commentText && commentText.toLowerCase().includes('?')) {
-            this.reportMetric.value = Number(this.reportMetric.value) + 1
+            this.reportMetric.value++
         }
     }
 
-    compileReportMetric(): ReportMetric {
+    public compileReportMetric(): ReportMetric<number> {
         return this.reportMetric
+    }
+
+    public consolidateAnalyzerValues(reportDataAnalyzer: QuestionCommentAnalyzer): void {
+        this.reportMetric.value += reportDataAnalyzer.reportMetric.value
     }
 }

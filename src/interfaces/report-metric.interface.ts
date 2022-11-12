@@ -1,4 +1,4 @@
-export interface ReportMetric {
+export interface ReportMetric<ValueType> {
     name: string
-    value: string | number
+    value: ValueType
 }

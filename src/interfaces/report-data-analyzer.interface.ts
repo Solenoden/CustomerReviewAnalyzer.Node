@@ -1,8 +1,10 @@
 import { ReportMetric } from './report-metric.interface'
 
-export interface ReportDataAnalyzer {
-    reportMetric: ReportMetric
+export interface ReportDataAnalyzer<ReportMetricDataType> {
+    identifier: string
+    reportMetric: ReportMetric<ReportMetricDataType>
 
     analyze(data: any): void
-    compileReportMetric(): ReportMetric
+    compileReportMetric(): ReportMetric<ReportMetricDataType>
+    consolidateAnalyzerValues(reportDataAnalyzer: ReportDataAnalyzer<ReportMetricDataType>): void
 }

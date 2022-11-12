@@ -1,17 +1,22 @@
 import { ReportDataAnalyzer } from '../interfaces/report-data-analyzer.interface'
 import { ReportMetric } from '../interfaces/report-metric.interface'
 
-export class SpamCommentAnalyzer implements ReportDataAnalyzer {
+export class SpamCommentAnalyzer implements ReportDataAnalyzer<number> {
     private readonly spamRegex = new RegExp(/(http|www)/)
-    reportMetric: ReportMetric = { name: 'SPAM', value: 0 }
+    identifier = 'SpamCommentAnalyzer'
+    reportMetric: ReportMetric<number> = { name: 'SPAM', value: 0 }
 
-    analyze(commentText: string): void {
+    public analyze(commentText: string): void {
         if (commentText && this.spamRegex.test(commentText)) {
-            this.reportMetric.value = Number(this.reportMetric.value) + 1
+            this.reportMetric.value++
         }
     }
 
-    compileReportMetric(): ReportMetric {
+    public compileReportMetric(): ReportMetric<number> {
         return this.reportMetric
+    }
+
+    public consolidateAnalyzerValues(reportDataAnalyzer: SpamCommentAnalyzer): void {
+        this.reportMetric.value += reportDataAnalyzer.reportMetric.value
     }
 }
