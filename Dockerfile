@@ -14,5 +14,6 @@ FROM node:$node_version
 WORKDIR /app
 COPY package.json ./
 RUN npm install --production
-COPY --from=builder /app/dist /dist
+RUN MKDIR /app/dist
+COPY --from=builder /app/dist /app/dist
 CMD ["node", "app.js"]
