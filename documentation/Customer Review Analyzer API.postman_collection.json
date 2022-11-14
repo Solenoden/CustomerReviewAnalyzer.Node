@@ -12,13 +12,42 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{baseUrl}}/report/comments",
+					"raw": "{{baseUrl}}/report/comments?startDate=2018-01-01&endDate=2018-01-03",
 					"host": [
 						"{{baseUrl}}"
 					],
 					"path": [
 						"report",
 						"comments"
+					],
+					"query": [
+						{
+							"key": "startDate",
+							"value": "2018-01-01"
+						},
+						{
+							"key": "endDate",
+							"value": "2018-01-03"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "ReportCsvGet",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/CommentsReport[2018-01-01-2018-01-03].csv",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"CommentsReport[2018-01-01-2018-01-03].csv"
 					]
 				}
 			},
