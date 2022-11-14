@@ -1,3 +1,4 @@
 export enum WorkerOperation {
-    ProcessCommentsFile = 'processCommentsFile'
+    ProcessCommentsFile = 'processCommentsFile',
+    WriteFile = 'writeFile',
 }

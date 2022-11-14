@@ -14,6 +14,7 @@ import { WorkerFile } from '../enums/worker-file.enum'
 export class ReportService {
     private readonly workerService = new WorkerService()
     private readonly documentsPath = './docs'
+    private readonly reportsPath = './reports'
     static commentAnalyzers: { [key: string]: { new(): ReportDataAnalyzer<any> } } = {
         'ShortCommentAnalyzer': ShortCommentAnalyzer,
         'MoverMentionsCommentAnalyzer': MoverMentionsCommentAnalyzer,
@@ -22,7 +23,10 @@ export class ReportService {
         'SpamCommentAnalyzer': SpamCommentAnalyzer
     }
 
-    public async compileCommentsReport(startDate: Date, endDate: Date): Promise<ReportMetric<any>[]> {
+    public compileCommentsReport(
+        startDate: Date,
+        endDate: Date
+    ): Promise<{ reportMetrics: ReportMetric<any>[], reportFileName: string }> {
         return new Promise((resolve, reject) => {
             // eslint-disable-next-line max-len
             const commentAnalyzers: ReportDataAnalyzer<any>[] = Object.values(ReportService.commentAnalyzers).map(x => new x())
@@ -30,12 +34,8 @@ export class ReportService {
 
             this.getCommentFiles(startDate, endDate).then(commentFiles => {
                 if (!commentFiles || commentFiles.length === 0) {
-                    const reportMetrics: ReportMetric<any>[] = commentAnalyzers.map(commentAnalyzer => {
-                        return commentAnalyzer.compileReportMetric()
-                    })
-                    this.logReportToConsole(reportHeading, reportMetrics)
-
-                    resolve(reportMetrics)
+                    const result = this.compileReport(reportHeading, commentAnalyzers)
+                    resolve(result)
                     return
                 }
 
@@ -64,12 +64,8 @@ export class ReportService {
                         })
 
                         if (completedWorkers === workerThreads.length) {
-                            const reportMetrics: ReportMetric<any>[] = commentAnalyzers.map(commentAnalyzer => {
-                                return commentAnalyzer.compileReportMetric()
-                            })
-                            this.logReportToConsole(reportHeading, reportMetrics)
-
-                            resolve(reportMetrics)
+                            const result = this.compileReport(reportHeading, commentAnalyzers)
+                            resolve(result)
                         }
                     })
                 })
@@ -116,6 +112,30 @@ export class ReportService {
             console.log(reportMetric.name + ' : ' + JSON.stringify(reportMetric.value))
         })
         console.log('')
+    }
+
+    private compileReport(
+        reportHeading: string,
+        reportDataAnalyzers: ReportDataAnalyzer<any>[]
+    ): { reportFileName: string, reportMetrics: ReportMetric<any>[] } {
+        const reportMetrics: ReportMetric<any>[] = reportDataAnalyzers.map(reportDataAnalyzer => {
+            return reportDataAnalyzer.compileReportMetric()
+        })
+        this.logReportToConsole(reportHeading, reportMetrics)
+        const { fileName } = this.writeReportToFile(reportHeading, reportMetrics)
+        return { reportMetrics, reportFileName: fileName }
+    }
+
+    private writeReportToFile(reportName: string, reportMetrics: ReportMetric<any>[]): { fileName: string } {
+        // eslint-disable-next-line max-len
+        const content = `MetricName,MetricValue\n${reportMetrics.map(x => x.name + ',' + JSON.stringify(x.value)).join('\n')}`
+        const fileName = reportName.replace(/ /g, '') + '.csv'
+        this.workerService.createWorkerThread(WorkerFile.Report, WorkerOperation.WriteFile, {
+            content,
+            filePath: this.reportsPath,
+            fileName
+        })
+        return { fileName }
     }
 
     private getCommentsReportHeading(startDate: Date, endDate: Date): string {

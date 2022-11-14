@@ -12,6 +12,9 @@ if (!isMainThread && workerData && workerData.operation) {
     case WorkerOperation.ProcessCommentsFile:
         void processCommentsFile()
         break
+    case WorkerOperation.WriteFile:
+        void writeFile()
+        break
     }
 }
 
@@ -31,4 +34,16 @@ async function processCommentsFile() {
 
     parentPort.postMessage({ commentAnalyzers })
     process.exit()
+}
+
+async function writeFile() {
+    const payload = workerData.payload as { content: string, filePath: string, fileName: string }
+
+    try {
+        await fileSystem.promises.writeFile(payload.filePath + '/' + payload.fileName, payload.content)
+        process.exit()
+    } catch (error) {
+        parentPort.postMessage({ error })
+        process.exit()
+    }
 }

@@ -34,6 +34,7 @@ app.use(
         limit: '5mb',
     }),
 )
+app.use(express.static('reports'))
 
 const endpointControllers: EndpointController[] = [
     new ReportController()
