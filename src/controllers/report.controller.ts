@@ -13,7 +13,9 @@ export class ReportController implements EndpointController {
 
     private async getCommentsReport(request: Request, response: Response): Promise<void> {
         try {
-            const reportMetrics = await this.reportService.compileCommentsReport()
+            const startDate = request.query.startDate ? new Date(request.query.startDate as string) : null
+            const endDate = request.query.endDate ? new Date(request.query.endDate as string) : null
+            const reportMetrics = await this.reportService.compileCommentsReport(startDate, endDate)
             response.status(200).send(reportMetrics)
         } catch (error) {
             this.errorHandlerService.handleError(response, error)

@@ -1,4 +1,5 @@
 import * as fileSystem from 'fs'
+import moment from 'moment'
 import { ReportMetric } from '../interfaces/report-metric.interface'
 import { ReportDataAnalyzer } from '../interfaces/report-data-analyzer.interface'
 import { ShortCommentAnalyzer } from '../classes/short-comment-analyzer.class'
@@ -21,33 +22,24 @@ export class ReportService {
         'SpamCommentAnalyzer': SpamCommentAnalyzer
     }
 
-    public async compileCommentsReport(): Promise<ReportMetric<any>[]> {
+    public async compileCommentsReport(startDate: Date, endDate: Date): Promise<ReportMetric<any>[]> {
         return new Promise((resolve, reject) => {
-            const commentFileRegex = new RegExp(/comments-([0-9]{4}-[0-9]{2}-[0-9]{2})\.txt/)
             // eslint-disable-next-line max-len
             const commentAnalyzers: ReportDataAnalyzer<any>[] = Object.values(ReportService.commentAnalyzers).map(x => new x())
+            const reportHeading = this.getCommentsReportHeading(startDate, endDate)
 
-            fileSystem.promises.readdir(this.documentsPath).then(allFiles => {
-                if (!allFiles || allFiles.length === 0) {
+            this.getCommentFiles(startDate, endDate).then(commentFiles => {
+                if (!commentFiles || commentFiles.length === 0) {
                     const reportMetrics: ReportMetric<any>[] = commentAnalyzers.map(commentAnalyzer => {
                         return commentAnalyzer.compileReportMetric()
                     })
-                    this.logReportToConsole('Comments Report', reportMetrics)
+                    this.logReportToConsole(reportHeading, reportMetrics)
 
                     resolve(reportMetrics)
+                    return
                 }
 
-                const commentFiles: { name: string, date: Date }[] = []
-                allFiles.forEach(file => {
-                    const matchInfo = commentFileRegex.exec(file)
-
-                    if (matchInfo) {
-                        const date = new Date(matchInfo[1])
-                        commentFiles.push({ name: file, date })
-                    }
-                })
-
-                const workers = commentFiles.map(file => {
+                const workerThreads = commentFiles.map(file => {
                     return this.workerService.createWorkerThread(
                         WorkerFile.Report,
                         WorkerOperation.ProcessCommentsFile,
@@ -58,7 +50,7 @@ export class ReportService {
                 })
 
                 let completedWorkers = 0
-                workers.forEach(worker => {
+                workerThreads.forEach(worker => {
                     worker.once('message', (result: { commentAnalyzers: ReportDataAnalyzer<any>[] }) => {
                         completedWorkers++
 
@@ -71,16 +63,45 @@ export class ReportService {
                             }
                         })
 
-                        if (completedWorkers === workers.length) {
+                        if (completedWorkers === workerThreads.length) {
                             const reportMetrics: ReportMetric<any>[] = commentAnalyzers.map(commentAnalyzer => {
                                 return commentAnalyzer.compileReportMetric()
                             })
-                            this.logReportToConsole('Comments Report', reportMetrics)
+                            this.logReportToConsole(reportHeading, reportMetrics)
 
                             resolve(reportMetrics)
                         }
                     })
                 })
+            }).catch(error => reject(error))
+        })
+    }
+
+    private getCommentFiles(startDate: Date, endDate: Date): Promise<{ name: string, date: Date }[]> {
+        return new Promise<{ name: string, date: Date }[]>((resolve, reject) => {
+            const commentFileRegex = new RegExp(/comments-([0-9]{4}-[0-9]{2}-[0-9]{2})\.txt/)
+            const momentStartDate = startDate && moment(startDate)
+            const momentEndDate = endDate && moment(endDate)
+
+            fileSystem.promises.readdir(this.documentsPath).then(allFiles => {
+                const commentFiles: { name: string, date: Date }[] = []
+                allFiles.forEach(file => {
+                    const matchInfo = commentFileRegex.exec(file)
+
+                    if (matchInfo) {
+                        const date = new Date(matchInfo[1])
+                        const momentDate = moment(date)
+
+                        if (
+                            (!momentStartDate || momentDate.isSameOrAfter(momentStartDate)) &&
+                            (!momentEndDate || momentDate.isSameOrBefore(momentEndDate))
+                        ) {
+                            commentFiles.push({ name: file, date })
+                        }
+                    }
+                })
+
+                resolve(commentFiles)
             }).catch(error => reject(error))
         })
     }
@@ -95,5 +116,21 @@ export class ReportService {
             console.log(reportMetric.name + ' : ' + JSON.stringify(reportMetric.value))
         })
         console.log('')
+    }
+
+    private getCommentsReportHeading(startDate: Date, endDate: Date): string {
+        let reportHeading = 'Comments Report'
+        if (startDate && endDate) {
+            // eslint-disable-next-line max-len
+            reportHeading = `${reportHeading} [${moment(startDate).format('YYYY-MM-DD')} - ${moment(endDate).format('YYYY-MM-DD')}]`
+        } else if (startDate && !endDate) {
+            reportHeading = `${reportHeading} [${moment(startDate).format('YYYY-MM-DD')} - Present]`
+        } else if (endDate && !startDate) {
+            reportHeading = `${reportHeading} [Present - ${moment(endDate).format('YYYY-MM-DD')}]`
+        } else if (startDate === endDate) {
+            reportHeading = `${reportHeading} [${moment(startDate).format('YYYY-MM-DD')}]`
+        }
+
+        return reportHeading
     }
 }
