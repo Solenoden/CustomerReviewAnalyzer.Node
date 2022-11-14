@@ -28,6 +28,15 @@ export class ReportService {
             const commentAnalyzers: ReportDataAnalyzer<any>[] = Object.values(ReportService.commentAnalyzers).map(x => new x())
 
             fileSystem.promises.readdir(this.documentsPath).then(allFiles => {
+                if (!allFiles || allFiles.length === 0) {
+                    const reportMetrics: ReportMetric<any>[] = commentAnalyzers.map(commentAnalyzer => {
+                        return commentAnalyzer.compileReportMetric()
+                    })
+                    this.logReportToConsole('Comments Report', reportMetrics)
+
+                    resolve(reportMetrics)
+                }
+
                 const commentFiles: { name: string, date: Date }[] = []
                 allFiles.forEach(file => {
                     const matchInfo = commentFileRegex.exec(file)
